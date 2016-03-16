@@ -1,0 +1,347 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <link rel="stylesheet" href="./stylesheets/animate.css">
+    <meta charset="utf-8">
+    <style>
+        .b {
+            border-radius: 5px;
+            background: lightgrey;
+            color: black;
+        }
+
+        .class1{
+            color: #336600;
+            font: italic;
+        }
+
+        .class2{
+            color: #FFCC33;
+            font: cursive;
+        }
+
+        .class3{
+            color: #FF9966;
+            font: bold;
+        }
+
+        footer {
+            position: fixed; /* Фиксированное положение */
+            left: 0; bottom: 0; /* Левый нижний угол */
+            padding: 10px; /* Поля вокруг текста */
+            background: #FFFF99; /* Цвет фона */
+            width: 100%; /* Ширина слоя */
+        }
+
+        body{
+            color: #663300;
+            background: #FFFFCC;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js" type="text/javascript"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+
+
+    <script>
+        (function($){
+            $.fn.moveText = function(prop){
+                var el = $(this),str = "";
+                el.animate({
+                    height: 0
+                }, "fast",function () {
+                    for(var i=0; i<el.length; i++) {
+                        var p = $('#changingText');
+                        //alert(p+' '+el[i]);
+                        p.prepend(el[i]);
+                    }
+                    el.animate({
+                        height: 20
+                    });
+                });
+
+
+
+
+
+            }
+        })(jQuery);
+
+        //shuffle plugin
+        (function($){
+            $.fn.shuffleLetters = function(prop){
+                var options = $.extend({
+                    "step"      : 3,
+                    "fps"       : 10,
+                    "callback"  : function(){}
+                },prop)
+
+                return this.each(function(){
+                    var el = $(this),
+                            str = "";
+                    if(el.data('animated')){
+                        return true;
+                    }
+                    el.data('animated',true);
+                    str = el.text().split('');
+                    var letters = [];
+
+                    for(var i=0;i<str.length;i++){
+                        letters.push(i);
+                    }
+
+                    el.html("");
+
+                    (function shuffle(start){
+                        var i,
+                                len = letters.length,
+                                strCopy = str.slice(0);
+                        if(start>options.step){
+                            el.data('animated',false);
+                            options.callback(el);
+                            return;
+                        }
+
+                        for(i=0; i < len; i++){
+                            var pull;
+                            var randInd = Math.floor(Math.random()*letters.length);
+                            pull = strCopy[letters[i]];
+                            strCopy[letters[i]] = strCopy[letters[randInd]];
+                            strCopy[letters[randInd]] = pull;
+                        }
+                        el.text(strCopy.join(""));
+                        setTimeout(function(){
+                            shuffle(start+1);
+                        },1000/options.fps);
+                    })(-options.step);
+                });
+            };
+            var container = $("#container");
+            function loop() {
+                container.shuffleLetters({ callback:loop });
+            }
+            loop();
+        })(jQuery);
+
+        function loadButton() {
+            $('.class1').moveText();
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'button', true);
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    if (xhr.status != 200) {
+                        // обработать ошибку
+                        alert('Ошибка ' + xhr.status + ': ' + xhr.statusText);
+                    } else {
+                        var result = JSON.parse(xhr.responseText);
+                        changeButton(result.name, result.b_image, result.color);
+                    }
+                }
+            };
+        }
+
+        //changing button after receiving
+        function changeButton(name, img, color) {
+            document.getElementById("buttonText").innerText = name;
+            document.getElementById("buttonImage").src = img;
+            document.getElementById("button").style.backgroundColor = color;
+        }
+
+        //adding tags and text format
+        $(document).ready(function() {
+            var fileContentLines = $('#changingText')[0].innerText;
+            fileContentLines = fileContentLines.split(/(?=[А-Я])/);
+            var randomLineIndex = Math.floor( Math.random() * fileContentLines.length );
+            var para = document.createElement("h2");
+            for(var i=0; i<fileContentLines.length; i++)
+            {
+                var line = document.createElement("div");
+                switch (Math.floor(Math.random()*5)) {
+                    case 0:
+                        line.className = 'class1';
+                        break
+                    case 1:
+                        line.className = 'class2';
+                        break
+                    case 2:
+                        line.className = 'class3';
+                        break
+                }
+                //line.className = line.className ? ' someClass' : 'someClass';
+                line.innerText = fileContentLines[i];
+                para.appendChild(line);
+            }
+            var element = document.getElementById("changingText");
+            element.innerHTML = para.innerHTML;
+        });
+
+        //init dom mutation observer
+        $(document).ready(function() {
+            var observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    $('#randomText').shuffleLetters();
+                });
+            });
+            var config = { attributes: true, childList: true, characterData: true }
+            observer.observe($("#button").get(0), config);
+            //observer.disconnect();
+        });
+
+
+            $(function() {
+
+                // We use an inline data source in the example, usually data would
+                // be fetched from a server
+
+                var data = [],
+                        totalPoints = 300;
+
+                function getBaseData() {
+
+                    if (data.length > 0)
+                        data = data.slice(1);
+
+                    // Do a random walk
+
+                    while (data.length < totalPoints) {
+                        data.push(0);
+                    }
+
+                    // Zip the generated y values with the x values
+
+                    var res = [];
+                    for (var i = 0; i < data.length; ++i) {
+                        res.push([i, data[i]])
+                    }
+                    //alert(res);
+                    return res;
+                }
+
+                // Set up the control widget
+
+                var updateInterval = 30;
+                $("#updateInterval").val(updateInterval).change(function () {
+                    var v = $(this).val();
+                    if (v && !isNaN(+v)) {
+                        updateInterval = +v;
+                        if (updateInterval < 1) {
+                            updateInterval = 1;
+                        } else if (updateInterval > 2000) {
+                            updateInterval = 2000;
+                        }
+                        $(this).val("" + updateInterval);
+                    }
+                });
+
+                var plot = $.plot("#placeholder", [ getBaseData() ], {
+                    series: {
+                        shadowSize: 0	// Drawing is faster without shadows
+                    },
+                    yaxis: {
+                        min: 0,
+                        max: 1
+                    },
+                    xaxis: {
+                        show: false
+                    }
+                });
+
+                function update() {
+
+                    responseRequests(plot);
+                    // Since the axes don't change, we don't need to call plot.setupGrid()
+                    setTimeout(update, updateInterval);
+                }
+
+                update();
+
+                // Add the Flot version string to the footer
+
+                $("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
+
+                function responseRequests(plot){
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('HEAD', 'package', true);
+                    xhr.send();
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4) {
+                            if (xhr.status != 200) {
+                                // обработать ошибку
+                                alert('Ошибка ' + xhr.status + ': ' + xhr.statusText);
+                            } else {
+                                var prev = data.length > 0 ? data[data.length - 1] : 50,
+                                y = parseFloat(xhr.getResponseHeader('X-Response-Time').substring(0, xhr.getResponseHeader('X-Response-Time').length-2));
+                                if (data.length > 0)
+                                    data = data.slice(1);
+                                // Do a random walk
+                                while (data.length < totalPoints) {
+                                    //y = 50;
+                                    if (y < 0) {
+                                        y = 0;
+                                    } else if (y > 100) {
+                                        y = 100;
+                                    }
+                                    data.push(y);
+                                }
+                                // Zip the generated y values with the x values
+                                var res = [];
+                                for (var i = 0; i < data.length; ++i) {
+                                    res.push([i, data[i]])
+                                }
+                                //alert(res);
+                                plot.setData([res]);
+                                plot.draw();
+                                // Since the axes don't change, we don't need to call plot.setupGrid()
+                            }
+                        }
+                    };
+                }
+
+            });
+
+
+
+
+
+
+
+
+
+    </script>
+</head>
+
+
+<body>
+<div align="center">
+    <button onclick="loadButton()" id="button" class="b">
+        <div id="buttonText">GO</div>
+        <img src="" width="30px" height="30px" id="buttonImage">
+    </button>
+    <hr>
+    <h1 id="randomText">Если есть вероятность, всё может случиться.</h1>
+    <br>
+    <h2 id="changingText">
+        Я молод был и думал, как ни странно,
+        Что все на этом свете постоянно,
+        Но время шло, и я установил,
+        Что убеждение мое обманно.
+        Менялось все: я что-то находил,
+        Чего-нибудь лишался непрестанно.
+        Но снова мир меня разубедил,
+        И понял я: как жизнь ни многогранна,
+        Здесь, в царстве колыбелей и могил,
+        Изменчивость от века постоянна.
+    </h2>
+
+</div>
+
+<footer><div align="center">
+    <div id="placeholder" style="width:600px;height:50px"></div>
+</div>
+</footer>
+</body>
+
+</html>
